@@ -4,6 +4,9 @@
 #include <ctype.h>
 #include <math.h>
 
+double net=0;
+long long int sum = 0;
+
 struct Node {
     char s[6];
     int key;
@@ -21,8 +24,7 @@ struct Node* newNode(char item[],int key)
     return temp;
 }
 
-/* A utility function to insert
-   a new Node with given key in
+/* A utility function to insert a new Node with given key in
  * BST */
 struct Node* insert(struct Node* Node, char s[],int key)
 {
@@ -39,6 +41,7 @@ struct Node* insert(struct Node* Node, char s[],int key)
     /* return the (unchanged) Node pointer */
     return Node;
 }
+// traverse the bst and compare the node->s aka string and return that node.
 
 struct Node* trav(struct Node* Node, char s[])
 {
@@ -53,7 +56,8 @@ struct Node* trav(struct Node* Node, char s[])
     /* return the (unchanged) Node pointer */
     return Node;
 }
-// Firstly we need to design the resistor for 3 different cases 1. 4 bands 2. 5 bands and 3.6 bands
+
+// Firstly we need to design the resistor for 2 different cases 1. 4 bands 2. 5 bands
 
 struct node
 {
@@ -83,11 +87,17 @@ void newnode(int item)
     }
 }
 
-int color(struct Node* node)
+// takes color input from user, converts Uppercase to lower case, traverse and compare the color with the color bst and return the key value of node.
+
+int color(int count,struct Node* node)
 {
     char color_str[8];
-    printf("Enter The Color Of Resistor in Lowercase :");
+    printf("Enter The Color Of Resistor of band %d:",count);
     scanf("%s",color_str);
+     for(int i=0;i<=strlen(color_str);i++){
+      if(color_str[i]>=65&&color_str[i]<=90)
+         color_str[i]=color_str[i]+32;
+   }
     node=trav(node,color_str);
     return node->key;
 };
@@ -103,8 +113,6 @@ void clear()
     }
 }
 
-  double net=0;
-long long int sum = 0;
 long long int calculate(int band)
 {
   struct node *temp = head;
@@ -126,37 +134,50 @@ long long int calculate(int band)
   return sum;
 }
 
-void resistance_value(int l,int m,int j,struct Node* root)
+void resistance_value(int l,int m,struct Node* node)
 {
-
+  //l to perform series or parallel 
+  //m to print output only after taking all the resistors values
   int band = 0;
-  if(j==0)
-  {
-    while (!(band >= 4 && band <= 5))
+    while (!(band == 4 || band == 5))
     {
         printf("Please Enter The Bands In Resistor : ");
         scanf("%d", &band);
+      if(!(isdigit(band))){
+        printf("Bands should be integer.\n");
+        break;
+        }
     }
     int count = band;
     while (count != 0)
     {
-        int color_value = color(root);
+        int color_value = color(band-count+1,node);
         newnode(color_value);
         count--;
     }
-    calculate(band);
-  }
-    
-  else if(j==2)
-  {
-    net+=calculate(band);
-    
-  }
-    if(l==2)
+    struct node *temp = head;
+    int j = 0;
+    long long int sum = 0;
+    while (temp->next!=NULL)
+    {
+        if (j < band-2)
+            sum = (sum * 10) + (temp->value);
+        else if (j == band-2)
+        {
+            int c = temp->value;
+            sum = sum * (pow(10, (c)));
+        }
+        temp = temp->next;
+        
+        j++;
+    }
+  printf("%lld +- %d%%\n", sum, temp->value);
+  // series and parallel
+  if(l==2)
   {
   net+=sum; 
     if(m==1)
-      printf("The Value Of Resisotrs In Series is : %lf\n",net);
+      printf("\nThe Value Of Resisotrs In Series is : %lf\n",net);
     }
   if(l==3)
   {
@@ -167,15 +188,10 @@ void resistance_value(int l,int m,int j,struct Node* root)
     else
   {
     net=(net*sum)/(net+sum);
-    printf("The Value Of Resisotrs In parallel is :%lf\n",net);
+    printf("\nThe Value Of Resisotrs In parallel is :%lf\n",net);
   }
   }
-  
-    if(j!=2)
-    {
     clear();
-      }
-  sum=0;
 };
 
 
@@ -184,16 +200,20 @@ void resistance_value(int l,int m,int j,struct Node* root)
 int main()
 {
 struct Node* root = NULL;
-root = insert(root,"black",0);
-root = insert(root,"brown",1);
-root =  insert(root,"red",2);
-root =  insert(root,"orange",3);
-root = insert(root,"yellow",4);
-root = insert(root,"green",5);
-root = insert(root,"blue",6);
-root = insert(root,"violet",7);
 root = insert(root,"grey",8);
+root = insert(root,"blue",6);
+root = insert(root,"black",0);
+root = insert(root,"gold",5);
+root = insert(root,"brown",1);
+root = insert(root,"green",5);
+root = insert(root,"silver",10);
+root = insert(root,"red",2);    
+root =  insert(root,"orange",3);
+root=  insert(root,"violet",7);
+root = insert(root,"yellow",4);
 root = insert(root,"white",9);
+
+  
   int k;
   
   while(k!=4)
@@ -202,29 +222,19 @@ root = insert(root,"white",9);
   scanf("%d",&k);
       if(k==1)
       {
-        resistance_value(k,0,0,root);
+        resistance_value(k,0,root);
       }
       else if (k==2 || k==3)
       {
-        int i=0;
-        resistance_value(k,0,i,root);
-        while(i!=3)
-          {
-            printf("1.Add another Resistor with different value :\n2.Add another Resistor with same value\n3.End\n");
-            scanf("%d",&i);
-            if(i==3)
-            {
-              break;
-            }
-            resistance_value(k,1,i,root);
-          }
+        resistance_value(k,0,root);
+        resistance_value(k,1,root);
         }
       else if(k==4)
       {
         break;
       }
       else{
-        printf("Please Enter A Valid Code");
+        printf("Please Enter A Valid Color");
       }
     }
     return 0;
